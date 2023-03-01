@@ -1,3 +1,12 @@
+:root {
+  --main-color: #1a8fff;
+  --text-color: #777;
+  --text-color-light: #ccc;
+  --border-color: #eee;
+  --bg-color: #f9f9f9;
+  --neutral-color: #fff;
+}
+
 .content {
   display: flex;
   gap: 30px;
@@ -27,12 +36,140 @@
 }
 
 .calendar_event {
-  padding: 10px;
-  background-color: aqua;
+  padding: 5px;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  word-wrap: normal;
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+  background-color: #1677ff;
+  width: max-content;
+  font-size: 11px;
+  margin-top: 39px;
+  color: white;
+  cursor: pointer;
 }
 
 .fixed_btn {
   position: fixed;
   background: white;
   top: 30px;
+}
+
+/* GENERAL */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-size: 1em;
+  font-weight: 300;
+  line-height: 1.5;
+  color: var(--text-color);
+  position: relative;
+}
+
+header {
+  display: block;
+  width: 100%;
+  padding: 1.75em 0;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--neutral-color);
+}
+
+header #logo {
+  font-size: 175%;
+  text-align: center;
+  color: var(--main-color);
+  line-height: 1;
+}
+
+header #logo .icon {
+  padding-right: .25em;
+}
+
+main {
+  display: block;
+  margin: 0 auto;
+  margin-top: 5em;
+  max-width: 50em;
+}
+
+
+/* GRID */
+
+.row {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.row-middle {
+  align-items: center;
+}
+
+.col {
+  flex-grow: 1;
+  flex-basis: 0;
+  max-width: 100%;
+}
+
+.col-start {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.col-center {
+  justify-content: center;
+  text-align: center;
+}
+
+.col-end {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.calendar .header {
+  padding: 30px;
+}
+
+.calendar .days {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.calendar .body .cell {
+  position: relative;
+  height: 5em;
+  border-right: 1px solid var(--border-color);
+  overflow: hidden;
+  background: var(--neutral-color);
+  transition: 0.25s ease-out;
+}
+
+.calendar .body .selected {
+  background: #efefef80;
+  color: black;
+}
+
+.calendar .body .row {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.calendar .body .cell .number {
+  position: absolute;
+  font-size: 15px;
+  line-height: 1;
+  top: 10px;
+  left: 10px;
+  font-weight: 700;
+}
+
+.calendar .body .disabled {
+  color: var(--text-color-light);
 }

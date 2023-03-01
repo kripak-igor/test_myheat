@@ -1,9 +1,21 @@
 import React from 'react';
 import './App.css';
-import { Calendar, Input, Button, ConfigProvider, Modal, Checkbox, Space, message } from 'antd';
+import { Input, Button,  Modal, Checkbox, Space, message } from 'antd';
 import 'dayjs/locale/ru';
 import dayjs from 'dayjs';
-import locale from 'antd/locale/ru_RU';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  isSameMonth,
+  isSameDay,
+  addMonths,
+  subMonths,
+} from "date-fns";
+
 
 export default class App extends React.Component {
 
@@ -14,6 +26,8 @@ export default class App extends React.Component {
       name: "",
       surname: "",
       phone: "",
+      currentMonth: new Date(),
+      selectedDate: new Date(),
       mail: "",
       organization: "",
       approval: false,
@@ -115,11 +129,11 @@ export default class App extends React.Component {
   }
 
   checkFields() {
-    if(this.state.name !== "" && this.state.surname !== "" && this.state.approval === true) {
-      this.setState({openModal: false});
+    if (this.state.name !== "" && this.state.surname !== "" && this.state.approval === true) {
+      this.setState({ openModal: false });
       this.clearForm();
       message.success("Запись прошла успешно", [3.5]);
-    }else{
+    } else {
       message.error("Заполните поля: Имя и Фамилия. А так же вы должны быть согласны с условиями лицензионного соглашения", [3.5]);
     }
   }
@@ -127,20 +141,120 @@ export default class App extends React.Component {
   onChange = (e) => {
     let name = e.target.name;
     let value = e.target.value;
-    this.setState({[name] : value});
+    this.setState({ [name]: value });
+  }
+  renderHeader() {
+    const dateFormat = "MMMM yyyy";
+
+    return (
+      <div className="header row flex-middle">
+        <div className="col col-start">
+          <div style={{cursor: 'pointer'}} onClick={this.prevMonth}>
+            <div>←</div>
+          </div>
+        </div>
+        <div className="col col-center">
+          <span>{format(this.state.currentMonth, dateFormat)}</span>
+        </div>
+        <div style={{cursor: 'pointer'}} className="col col-end" onClick={this.nextMonth}>
+          <div>→</div>
+        </div>
+      </div>
+    );
   }
 
+  renderDays() {
+    const dateFormat = "eeee";
+    const days = [];
+
+    let startDate = startOfWeek(this.state.currentMonth);
+
+    for (let i = 0; i < 7; i++) {
+      days.push(
+        <div className="col col-center" key={i}>
+          {format(addDays(startDate, i), dateFormat)}
+        </div>
+      );
+    }
+
+    return <div className="days row">{days}</div>;
+  }
+
+  renderCells() {
+    const { currentMonth, selectedDate } = this.state;
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(monthStart);
+    const startDate = startOfWeek(monthStart);
+    const endDate = endOfWeek(monthEnd);
+
+    const dateFormat = "d";
+    const rows = [];
+
+    let days = [];
+    let day = startDate;
+    let formattedDate = "";
+
+    while (day <= endDate) {
+      for (let i = 0; i < 7; i++) {
+        formattedDate = format(day, dateFormat);
+        const cloneDay = day;
+        days.push(
+          <div
+            className={`col cell ${
+              !isSameMonth(day, monthStart)
+                ? "disabled"
+                : isSameDay(day, selectedDate) ? "selected" : ""
+            }`}
+            key={day}
+          >
+            {
+              this.state.eventList.find(item => item.date.indexOf(dayjs(cloneDay).locale('ru').format('YYYY-MM-DD')) !== -1) !== undefined ? 
+              <div>
+                <span className="number">{formattedDate}</span>
+                <div className="calendar_event" onClick={() => {this.setState({eventModal: true, eventObject: this.state.eventList.find(item => item.date.indexOf(dayjs(cloneDay).locale('ru').format('YYYY-MM-DD')) !== -1)})}}>{this.state.eventList.find(item => item.date.indexOf(dayjs(cloneDay).locale('ru').format('YYYY-MM-DD')) !== -1).title}</div>
+              </div>
+              :
+              <span className="number">{formattedDate}</span>
+            }
+            
+          </div>
+        );
+        day = addDays(day, 1);
+      }
+      rows.push(
+        <div className="row" key={day}>
+          {days}
+        </div>
+      );
+      days = [];
+    }
+    return <div className="body">{rows}</div>;
+  }
+
+  nextMonth = () => {
+    this.setState({
+      currentMonth: addMonths(this.state.currentMonth, 1)
+    });
+  };
+
+  prevMonth = () => {
+    this.setState({
+      currentMonth: subMonths(this.state.currentMonth, 1)
+    });
+  };
+
   render() {
+     
     if (this.state.startOver === false) {
       this.state.eventList.sort((a, b) => new Date(a.date) - new Date(b.date));
     } else {
       this.state.eventList.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
-    
+
     return (
       <div className='content'>
         <div className='events'>
-          <Button type="text" className='fixed_btn' onClick={() => {this.setState({startOver: this.state.startOver === false ? true : false})}}>{this.state.startOver === false ? "Сортировка: c начала года" : "Сортировка: c конца года"}</Button>
+          <Button type="text" className='fixed_btn' onClick={() => { this.setState({ startOver: this.state.startOver === false ? true : false }) }}>{this.state.startOver === false ? "Сортировка: c начала года" : "Сортировка: c конца года"}</Button>
           {
             this.state.eventList.map((item, index) => {
               return (
@@ -152,7 +266,7 @@ export default class App extends React.Component {
                     <div>Организатор: {item.organizator}</div>
                   </div>
                   <div>
-                    <Button onClick={() => { this.setState({ openModal: true}) }} type="primary">Запись</Button>
+                    <Button onClick={() => { this.setState({ openModal: true }) }} type="primary">Запись</Button>
                   </div>
                 </div>
               );
@@ -160,24 +274,19 @@ export default class App extends React.Component {
           }
         </div>
         <div className='calendar'>
-          <ConfigProvider locale={locale}>
-            <Calendar dateCellRender={(date) => {
-              var resultSearch = this.state.eventList.find(item => item.date.indexOf(dayjs(date.$d).locale('ru').format('YYYY-MM-DD')) !== -1);
-              if(resultSearch !== undefined){
-                return <div className="calendar_event" onClick={() => {this.setState({eventModal: true, eventObject: resultSearch})}}>{resultSearch.title}</div>
-              } 
-            }}  />
-          </ConfigProvider>
+          {this.renderHeader()}
+          {this.renderDays()}
+          {this.renderCells()}
         </div>
 
-        <Modal title={"Запись на мероприятие"} open={this.state.openModal} onOk={() => { this.checkFields(); }} onCancel={() => { this.setState({ openModal: false}); this.clearForm(); }}>
+        <Modal title={"Запись на мероприятие"} open={this.state.openModal} onOk={() => { this.checkFields(); }} onCancel={() => { this.setState({ openModal: false }); this.clearForm(); }}>
           <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
             <Input placeholder="Имя" name="name" value={this.state.name} onChange={this.onChange.bind(this)} />
-            <Input placeholder="Фамилия" name="surname" value={this.state.surname} onChange={this.onChange.bind(this)}/>
-            <Input placeholder="Телефон" name="phone" value={this.state.phone} onChange={this.onChange.bind(this)}/>
-            <Input placeholder="Email" name="mail" value={this.state.mail} onChange={this.onChange.bind(this)}/>
-            <Input placeholder="Организация" name="organization" value={this.state.organization} onChange={this.onChange.bind(this)}/>
-            <Checkbox checked={this.state.approval} onChange={() => { this.setState({approval: this.state.approval === false ? true : false}) }}>Я согласен с условиями <a href='https://mhtest.ru/license-agreement'>Лицензионного соглашения</a> и даю согласие на обработку моих персональных данных.</Checkbox>
+            <Input placeholder="Фамилия" name="surname" value={this.state.surname} onChange={this.onChange.bind(this)} />
+            <Input placeholder="Телефон" name="phone" value={this.state.phone} onChange={this.onChange.bind(this)} />
+            <Input placeholder="Email" name="mail" value={this.state.mail} onChange={this.onChange.bind(this)} />
+            <Input placeholder="Организация" name="organization" value={this.state.organization} onChange={this.onChange.bind(this)} />
+            <Checkbox checked={this.state.approval} onChange={() => { this.setState({ approval: this.state.approval === false ? true : false }) }}>Я согласен с условиями <a href='https://mhtest.ru/license-agreement'>Лицензионного соглашения</a> и даю согласие на обработку моих персональных данных.</Checkbox>
           </Space>
         </Modal>
 
@@ -189,4 +298,5 @@ export default class App extends React.Component {
       </div>
     );
   }
+
 }
