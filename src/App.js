@@ -15,6 +15,7 @@ import {
   addMonths,
   subMonths,
 } from "date-fns";
+import ruLocale from "date-fns/locale/ru";
 
 
 export default class App extends React.Component {
@@ -144,7 +145,7 @@ export default class App extends React.Component {
     this.setState({ [name]: value });
   }
   renderHeader() {
-    const dateFormat = "MMMM yyyy";
+    const dateFormat = "LLLL yyyy";
 
     return (
       <div className="header row flex-middle">
@@ -154,7 +155,7 @@ export default class App extends React.Component {
           </div>
         </div>
         <div className="col col-center">
-          <span>{format(this.state.currentMonth, dateFormat)}</span>
+          <span>{format(this.state.currentMonth, dateFormat, { locale: ruLocale })}</span>
         </div>
         <div style={{cursor: 'pointer'}} className="col col-end" onClick={this.nextMonth}>
           <div>→</div>
@@ -167,12 +168,12 @@ export default class App extends React.Component {
     const dateFormat = "eeee";
     const days = [];
 
-    let startDate = startOfWeek(this.state.currentMonth);
+    let startDate = startOfWeek(this.state.currentMonth, {weekStartsOn: 1});
 
     for (let i = 0; i < 7; i++) {
       days.push(
         <div className="col col-center" key={i}>
-          {format(addDays(startDate, i), dateFormat)}
+          {format(addDays(startDate, i), dateFormat, { locale: ruLocale })}
         </div>
       );
     }
@@ -184,7 +185,7 @@ export default class App extends React.Component {
     const { currentMonth, selectedDate } = this.state;
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(monthStart);
-    const startDate = startOfWeek(monthStart);
+    const startDate = startOfWeek(monthStart, {weekStartsOn: 1});
     const endDate = endOfWeek(monthEnd);
 
     const dateFormat = "d";
